@@ -23,4 +23,5 @@ urlpatterns = [
     path('users/', include('users.urls', namespace='user')),
     path('material/', include('materials.urls', namespace='materials')),
 ]
+
 urlpatterns += staticfiles_urlpatterns()
