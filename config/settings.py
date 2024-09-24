@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'users',
     'materials',
     'rest_framework_simplejwt',
+    'drf_yasg'
 ]
 
 REST_FRAMEWORK = {
@@ -155,3 +156,5 @@ AUTH_USER_MODEL = 'users.User'
 
 LOGIN_REDIRECT_URL = '/'
 LOGOUT_REDIRECT_URL = '/'
+
+STRIPE_KEY = os.getenv("SRTIPE_KEY")
