@@ -1,13 +1,11 @@
-from django.shortcuts import render
-
 from rest_framework.generics import CreateAPIView, ListAPIView, DestroyAPIView, RetrieveAPIView, UpdateAPIView
 from rest_framework.filters import SearchFilter, OrderingFilter
 from django_filters import rest_framework
 from rest_framework.permissions import IsAuthenticated
-from rest_framework_simplejwt.views import TokenObtainPairView
 
 from users.models import Payment, User
 from users.serializers import PaymentSerializer, UserSerializer
+from users.services import create_product, create_price, create_payment
 
 
 class PaymentListAPIView(ListAPIView):
@@ -46,3 +44,19 @@ class UserUpdateAPIView(UpdateAPIView):
     queryset = User.objects.all()
     serializer_class = UserSerializer
     permission_classes = [IsAuthenticated]
+
+
+class PaymentCreateAPIview(CreateAPIView):
+    queryset = Payment.objects.all()
+    serializer_class = PaymentSerializer
+    permission_classes = [IsAuthenticated]
+
+    def perform_create(self, serializer):
+        payment = serializer.save(user=self.request.user, method=Payment.METHOD[1][0])
+        product = create_product(payment.course)
+        price = create_price(payment.value, product)
+        session = create_payment(price)
+        payment.payment_link = session.get('url')
+        payment.payment_id = session.get('id')
+        payment.save()
+

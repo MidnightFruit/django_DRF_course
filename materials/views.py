@@ -44,10 +44,10 @@ class LessonCreateAPIView(CreateAPIView):
 
 
 class LessonListAPIView(ListAPIView):
-    pagination_class = LessonsPaginator
     queryset = Lesson.objects.all()
     serializer_class = LessonSerializer
     permission_classes = [IsAuthenticated, IsOwner]
+    pagination_class = LessonsPaginator
 
 
 class LessonRetrieveAPIView(RetrieveAPIView):
