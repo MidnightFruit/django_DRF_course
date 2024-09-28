@@ -17,6 +17,7 @@ class Course(models.Model):
         verbose_name = "курс"
         verbose_name_plural = "курсы"
 
+
 class Lesson(models.Model):
     name = models.CharField(max_length=64, verbose_name='название урока')
     description = models.TextField(max_length=1024, verbose_name='описание урока')
@@ -33,3 +34,10 @@ class Lesson(models.Model):
 class Subscribe(models.Model):
     user = models.ForeignKey(AUTH_USER_MODEL, on_delete=models.CASCADE, verbose_name='пользователь')
     course = models.ForeignKey(Course, on_delete=models.CASCADE, verbose_name='курс')
+
+    class Meta:
+        verbose_name = "подписка"
+        verbose_name_plural = "подписки"
+
+    # def __str__(self):
+    #     return f"{self.user.name} {self.course.name}"

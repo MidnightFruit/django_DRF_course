@@ -11,20 +11,31 @@ class LessonSerializer(serializers.ModelSerializer):
         validators = [YouTubeURLValidator(field='video_url')]
 
 
-class CourseSerializer(serializers.ModelSerializer):
-    lessons_count = serializers.SerializerMethodField()
-    lessons = LessonSerializer(read_only=True, many=True)
-    # user = serializers.HiddenField(default=serializers.CurrentUserDefault())
-
-    def get_lessons_count(self, obj):
-        return Lesson.objects.filter(course=obj).count()
-
-    class Meta:
-        model = Course
-        fields = ('name', 'preview', 'description', 'lessons_count', 'lessons')
-
-
 class SubscribeSerializer(serializers.ModelSerializer):
     class Meta:
         model = Subscribe
         field = 'course'
+
+
+class CourseSerializer(serializers.ModelSerializer):
+    lessons_count = serializers.SerializerMethodField()
+    lessons = LessonSerializer(read_only=True, many=True)
+    owner = serializers.HiddenField(default=serializers.CurrentUserDefault())
+    subscriptions = serializers.SerializerMethodField()
+
+    def get_lessons_count(self, obj):
+        return Lesson.objects.filter(course=obj).count()
+
+    def get_subscriptions(self, course):
+        subscription = Subscribe.objects.filter(course=course)
+        subed_emails = []
+        for sub in subscription:
+            subed_emails.append(sub.user.email)
+        return subed_emails
+
+
+    class Meta:
+        model = Course
+        fields = ('pk' ,'name', 'preview', 'description', 'lessons_count', 'lessons', 'owner', 'subscriptions')
+
+
