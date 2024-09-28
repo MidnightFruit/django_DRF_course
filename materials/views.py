@@ -8,6 +8,7 @@ from rest_framework.views import APIView
 from materials.models import Course, Lesson, Subscribe
 from materials.paginators import LessonsPaginator, CoursesPaginator
 from materials.serializers import CourseSerializer, LessonSerializer
+from materials.tasks import send_notifications
 from users.permissions import IsModerator, IsOwner
 
 
@@ -19,17 +20,21 @@ class CourseViewSet(viewsets.ModelViewSet):
     def perform_create(self, serializer):
         serializer.save(owner=self.request.user)
 
+    def perform_update(self, serializer):
+        self.course = serializer.save()
+        send_notifications.delay(self.course.name, serializer.data['subscriptions'])
+
     def get_permissions(self):
         if self.action == 'create':
-            self.permission_classes = (IsAuthenticated, ~IsModerator)
+            self.permission_classes = [IsAuthenticated, ~IsModerator]
         elif self.action == 'list':
-            self.permission_classes = (IsAuthenticated, IsOwner | IsModerator,)
+            self.permission_classes = [IsAuthenticated, IsOwner | IsModerator,]
         elif self.action == 'destroy':
-            self.permission_classes = (IsOwner, ~IsModerator)
+            self.permission_classes = [IsOwner, ~IsModerator]
         elif self.action == 'update':
-            self.permission_classes = (IsAuthenticated, IsOwner | IsModerator,)
-        else:
-            self.permission_classes = (IsOwner | IsModerator,)
+            self.permission_classes = [IsAuthenticated, IsOwner | IsModerator,]
+        elif self.action == 'retrieve':
+            self.permission_classes = [IsOwner | IsModerator,]
 
         return [permission() for permission in self.permission_classes]
 
@@ -60,6 +65,8 @@ class LessonUpdateAPIView(UpdateAPIView):
     queryset = Lesson.objects.all()
     serializer_class = LessonSerializer
     permission_classes = [IsOwner | IsModerator, IsAuthenticated]
+
+
 
 
 class LessonDestroyAPIView(DestroyAPIView):
